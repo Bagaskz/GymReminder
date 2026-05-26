@@ -1,30 +1,23 @@
-import React from 'react';
-
-// Import komponen dasar dari React Native
-import { View, StyleSheet, FlatList, TouchableOpacity, Text } from 'react-native';
-
-// Import icon dari Expo
+import React, { useState } from 'react';
+import { 
+  View, 
+  StyleSheet, 
+  FlatList, 
+  TouchableOpacity, 
+  Text, 
+  Alert 
+} from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
-// Import komponen custom (yang kamu buat sendiri di folder src/components)
-import Header from './src/components/Header'; // Komponen header (judul aplikasi)
-import CategoryList from './src/components/CategoryList'; // Komponen list kategori workout
-import MainCard from './src/components/MainCard'; // Komponen card utama (workout hari ini)
-import ScheduleItem from './src/components/ScheduleItem'; // Komponen item untuk setiap jadwal
+import Header from './src/components/Header';
+import CategoryList from './src/components/CategoryList';
+import MainCard from './src/components/MainCard';
+import ScheduleItem from './src/components/ScheduleItem';
 
 const App = () => {
 
-  // ===== DATA KATEGORI =====
-  // Digunakan untuk menampilkan jenis workout (strength, cardio, dll)
-  const categories = [
-    { name: 'Strength', icon: 'barbell' },
-    { name: 'Cardio', icon: 'run' },
-    { name: 'Yoga', icon: 'meditation' }
-  ];
-
-  // ===== DATA JADWAL =====
-  // Berisi daftar jadwal gym yang akan ditampilkan pada FlatList
-  const schedules = [
+  // ===== STATE =====
+  const [schedules, setSchedules] = useState([
     { 
       id: '1', 
       title: 'Leg Day', 
@@ -43,44 +36,68 @@ const App = () => {
       day: 'Friday', 
       image: 'https://gymgeek.com/wp-content/uploads/2024/01/back-day-workout-1024x576.jpeg' 
     }
+  ]);
+
+  // Data kategori (tidak perlu state)
+  const categories = [
+    { name: 'Strength', icon: 'barbell' },
+    { name: 'Cardio', icon: 'run' },
+    { name: 'Yoga', icon: 'meditation' }
   ];
 
+  // ===== FUNGSI STATE =====
+  const tambahJadwal = () => {
+    const newJadwal = {
+      id: Date.now().toString(),
+      title: 'New Workout',
+      day: 'Saturday',
+      image: 'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b'
+    };
+
+    setSchedules([...schedules, newJadwal]);
+    Alert.alert('Sukses', 'Jadwal baru berhasil ditambahkan!');
+  };
+
+  const hapusJadwal = (id) => {
+    Alert.alert(
+      "Hapus Jadwal",
+      "Yakin ingin menghapus jadwal ini?",
+      [
+        { text: "Batal", style: "cancel" },
+        { 
+          text: "Hapus", 
+          style: "destructive",
+          onPress: () => {
+            setSchedules(schedules.filter(item => item.id !== id));
+          }
+        }
+      ]
+    );
+  };
+
   return (
-    // ===== CONTAINER UTAMA =====
-    // View utama yang membungkus seluruh tampilan aplikasi
     <View style={styles.container}>
 
-      {/* ===== HEADER ===== */}
-      {/* Menampilkan judul aplikasi Gym Reminder */}
       <Header />
-
-      {/* ===== KATEGORI ===== */}
-      {/* Menampilkan kategori workout dalam bentuk horizontal */}
       <CategoryList categories={categories} />
-
-      {/* ===== CARD UTAMA ===== */}
-      {/* Menampilkan workout utama hari ini */}
       <MainCard />
 
-      {/* ===== TOMBOL TAMBAH ===== */}
-      {/* Tombol untuk menambahkan jadwal baru */}
-      <TouchableOpacity style={styles.button}>
-        
-        {/* Icon tambah */}
+      {/* Tombol Tambah Jadwal */}
+      <TouchableOpacity style={styles.button} onPress={tambahJadwal}>
         <Ionicons name="add" size={20} color="#fff" />
-
-        {/* Text tombol */}
         <Text style={styles.buttonText}>Tambah Jadwal</Text>
       </TouchableOpacity>
 
-      {/* ===== FLATLIST ===== */}
-      {/* Menampilkan daftar jadwal gym secara dinamis */}
+      {/* FlatList dengan props onDelete */}
       <FlatList
-        data={schedules} // sumber data
-        keyExtractor={(item) => item.id} // key unik untuk setiap item
-        
-        // renderItem akan memanggil komponen ScheduleItem untuk setiap data
-        renderItem={({ item }) => <ScheduleItem item={item} />}
+        data={schedules}
+        keyExtractor={(item) => item.id}
+        renderItem={({ item }) => (
+          <ScheduleItem 
+            item={item} 
+            onDelete={hapusJadwal}     // Kirim fungsi hapus via props
+          />
+        )}
       />
 
     </View>
@@ -89,32 +106,27 @@ const App = () => {
 
 export default App;
 
-// ===== STYLE =====
+// ===== STYLES =====
 const styles = StyleSheet.create({
-
-  // Container utama aplikasi
   container: {
-    flex: 1, // memenuhi seluruh layar
-    padding: 16, // jarak dalam
-    backgroundColor: '#f0f2f5' // warna background
+    flex: 1,
+    padding: 16,
+    backgroundColor: '#f0f2f5'
   },
 
-  // Style tombol tambah
   button: {
-    flexDirection: 'row', // icon dan text sejajar horizontal
-    backgroundColor: '#4CAF50', // warna hijau
+    flexDirection: 'row',
+    backgroundColor: '#4CAF50',
     padding: 12,
-    borderRadius: 12, // sudut melengkung
-    justifyContent: 'center', // posisi tengah horizontal
-    alignItems: 'center', // posisi tengah vertikal
-    marginTop: 10
+    borderRadius: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginVertical: 10
   },
 
-  // Style text pada tombol
   buttonText: {
-    color: '#fff', // warna putih
-    marginLeft: 5, // jarak dari icon
+    color: '#fff',
+    marginLeft: 5,
     fontWeight: 'bold'
   }
-
 });

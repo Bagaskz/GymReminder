@@ -1,62 +1,71 @@
 import React from 'react';
-import { View, Text, StyleSheet, Image } from 'react-native';
+import { View, Text, StyleSheet, Image, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
-// Komponen ScheduleItem untuk menampilkan setiap item jadwal gym
-const ScheduleItem = ({ item }) => {
+const ScheduleItem = ({ item, onDelete }) => {
   return (
-    // Container utama item
     <View style={styles.container}>
-
-      {/* Gambar workout */}
+      
+      {/* Gambar */}
       <Image source={{ uri: item.image }} style={styles.image} />
 
-      {/* Informasi jadwal */}
+      {/* Informasi */}
       <View style={styles.info}>
-        
-        {/* Judul workout */}
         <Text style={styles.title}>{item.title}</Text>
-
-        {/* Hari dengan icon */}
         <View style={styles.row}>
           <Ionicons name="calendar-outline" size={14} color="#555" />
           <Text style={styles.day}>{item.day}</Text>
         </View>
-
       </View>
+
+      {/* Tombol Hapus */}
+      <TouchableOpacity 
+        style={styles.deleteButton}
+        onPress={() => onDelete(item.id)}
+      >
+        <Ionicons name="trash-outline" size={24} color="#ff4757" />
+      </TouchableOpacity>
+
     </View>
   );
 };
 
 export default ScheduleItem;
 
-// Style untuk item jadwal
+// ===== STYLES =====
 const styles = StyleSheet.create({
   container: {
-    flexDirection: 'row', // gambar dan teks sejajar
+    flexDirection: 'row',
     backgroundColor: '#fff',
-    padding: 10,
+    padding: 12,
     borderRadius: 15,
     marginTop: 10,
-    elevation: 2 // efek bayangan
+    elevation: 3,
+    alignItems: 'center',
   },
   image: {
-    width: 60,
-    height: 60,
-    borderRadius: 10
+    width: 70,
+    height: 70,
+    borderRadius: 12,
   },
   info: {
-    marginLeft: 10
+    marginLeft: 12,
+    flex: 1,
   },
   title: {
-    fontWeight: 'bold'
+    fontWeight: 'bold',
+    fontSize: 16,
+    marginBottom: 4,
   },
   day: {
     marginLeft: 5,
-    color: '#777'
+    color: '#777',
   },
   row: {
     flexDirection: 'row',
-    alignItems: 'center'
-  }
+    alignItems: 'center',
+  },
+  deleteButton: {
+    padding: 8,
+  },
 });
