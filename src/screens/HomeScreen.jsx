@@ -14,16 +14,19 @@ import CategoryList from '../components/CategoryList';
 import MainCard from '../components/MainCard';
 import ScheduleItem from '../components/ScheduleItem';
 
-const HomeScreen = ({ navigation, schedules, deleteWorkout, categories }) => {
+const HomeScreen = ({ onProfilePress, onWorkoutPress, schedules, deleteWorkout, categories }) => {
   const [selectedCategory, setSelectedCategory] = useState(null);
 
+  // Dapatkan hari ini
   const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
   const todayName = days[new Date().getDay()];
 
+  // Cari jadwal latihan hari ini
   const todayWorkout = schedules.find(
     item => item.day.toLowerCase() === todayName.toLowerCase()
   );
 
+  // Filter jadwal berdasarkan kategori yang dipilih
   const filteredSchedules = selectedCategory
     ? schedules.filter(item => item.category.toLowerCase() === selectedCategory.toLowerCase())
     : schedules;
@@ -48,8 +51,10 @@ const HomeScreen = ({ navigation, schedules, deleteWorkout, categories }) => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <Header onProfilePress={() => navigation.navigate('Profile')} />
+      {/* Header Utama dengan callback onProfilePress */}
+      <Header onProfilePress={onProfilePress} />
 
+      {/* FlatList Utama yang Merender Header & Item List */}
       <FlatList
         data={filteredSchedules}
         keyExtractor={(item) => item.id}
@@ -65,7 +70,7 @@ const HomeScreen = ({ navigation, schedules, deleteWorkout, categories }) => {
             <Text style={styles.sectionTitle}>Latihan Hari Ini</Text>
             <MainCard 
               workout={todayWorkout} 
-              onPress={() => todayWorkout && navigation.navigate('WorkoutDetail', { id: todayWorkout.id })}
+              onPress={() => todayWorkout && onWorkoutPress(todayWorkout.id)}
             />
 
             <Text style={styles.sectionTitle}>Kategori Latihan</Text>
@@ -91,7 +96,7 @@ const HomeScreen = ({ navigation, schedules, deleteWorkout, categories }) => {
           <ScheduleItem 
             item={item} 
             onDelete={handleHapusJadwal}
-            onPress={() => navigation.navigate('WorkoutDetail', { id: item.id })}
+            onPress={() => onWorkoutPress(item.id)}
           />
         )}
       />
@@ -101,6 +106,7 @@ const HomeScreen = ({ navigation, schedules, deleteWorkout, categories }) => {
 
 export default HomeScreen;
 
+// ===== STYLES =====
 const styles = StyleSheet.create({
   container: {
     flex: 1,

@@ -12,23 +12,25 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 
-const WorkoutDetailScreen = ({ route, navigation, schedules }) => {
-  const { id } = route.params;
-
+const WorkoutDetailScreen = ({ id, onBackPress, schedules }) => {
+  // Cari data workout berdasarkan ID dari props schedules
   const workout = schedules.find(item => item.id === id);
 
+  // State untuk Timer
   const [timeLeft, setTimeLeft] = useState(0);
   const [isRunning, setIsRunning] = useState(false);
   const [isCompleted, setIsCompleted] = useState(false);
 
+  // Inisialisasi durasi timer berdasarkan data workout
   useEffect(() => {
     if (workout) {
-      setTimeLeft(workout.duration * 60);
+      setTimeLeft(workout.duration * 60); // Konversi menit ke detik
       setIsRunning(false);
       setIsCompleted(false);
     }
   }, [workout]);
 
+  // Efek Timer Countdown
   useEffect(() => {
     let interval = null;
     if (isRunning && timeLeft > 0) {
@@ -54,19 +56,21 @@ const WorkoutDetailScreen = ({ route, navigation, schedules }) => {
     return (
       <SafeAreaView style={styles.errorContainer}>
         <Text style={styles.errorText}>Jadwal latihan tidak ditemukan.</Text>
-        <TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()}>
+        <TouchableOpacity style={styles.backBtn} onPress={onBackPress}>
           <Text style={styles.backBtnText}>Kembali</Text>
         </TouchableOpacity>
       </SafeAreaView>
     );
   }
 
+  // Format detik menjadi MM:SS
   const formatTime = (seconds) => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
     return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
 
+  // Fungsi kontrol timer
   const toggleTimer = () => {
     setIsRunning(!isRunning);
   };
@@ -77,6 +81,7 @@ const WorkoutDetailScreen = ({ route, navigation, schedules }) => {
     setIsCompleted(false);
   };
 
+  // Sesuaikan waktu (tambah/kurang menit)
   const adjustTime = (amount) => {
     setTimeLeft(prev => {
       const newTime = prev + amount;
@@ -91,7 +96,8 @@ const WorkoutDetailScreen = ({ route, navigation, schedules }) => {
         <View style={styles.imageContainer}>
           <Image source={{ uri: workout.image }} style={styles.image} />
           
-          <TouchableOpacity style={styles.overlayBackBtn} onPress={() => navigation.goBack()}>
+          {/* Menggunakan onBackPress callback */}
+          <TouchableOpacity style={styles.overlayBackBtn} onPress={onBackPress}>
             <Ionicons name="chevron-back" size={24} color="#fff" />
           </TouchableOpacity>
 
