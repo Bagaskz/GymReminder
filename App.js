@@ -1,11 +1,8 @@
+import 'react-native-gesture-handler';
 import React, { useState } from 'react';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
-import { StatusBar } from 'expo-status-bar';
 
-import HomeScreen from './src/screens/HomeScreen';
-import ProfileScreen from './src/screens/ProfileScreen';
-import WorkoutDetailScreen from './src/screens/WorkoutDetailScreen';
-
+import AppNavigator from './src/navigation/AppNavigator';
 import { initialSchedules, categories } from './src/data/workoutData';
 
 const App = () => {
@@ -24,34 +21,12 @@ const App = () => {
 
   return (
     <SafeAreaProvider>
-      <StatusBar style="dark" translucent backgroundColor="transparent" />
-
-      {/* Rute 1: Dashboard Utama (Aktif secara default) */}
-      <HomeScreen 
+      <AppNavigator 
         schedules={schedules} 
         deleteWorkout={deleteWorkout} 
         categories={categories} 
-        onWorkoutPress={() => {}}
-      />
-
-      {/* Rute 2: Profil & Statistik (Hapus komentar di bawah untuk mengaktifkan) */}
-      {/* 
-      <ProfileScreen 
-        schedules={schedules} 
         resetSchedules={resetSchedules}
-        onBackPress={() => {}}
-      /> 
-      */}
-
-      {/* Rute 3: Detail Latihan & Timer (Hapus komentar di bawah untuk mengaktifkan) */}
-      {/* 
-      <WorkoutDetailScreen 
-        id="1"
-        schedules={schedules} 
-        onBackPress={() => {}}
-      /> 
-      */}
-
+      />
     </SafeAreaProvider>
   );
 };

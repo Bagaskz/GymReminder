@@ -11,7 +11,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 
-const ProfileScreen = ({ onBackPress, schedules, resetSchedules }) => {
+const ProfileScreen = ({ navigation, schedules, resetSchedules }) => {
   const totalWorkouts = schedules.length;
   const totalDuration = schedules.reduce((total, item) => total + (parseInt(item.duration) || 0), 0);
 
@@ -35,11 +35,7 @@ const ProfileScreen = ({ onBackPress, schedules, resetSchedules }) => {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
-        <TouchableOpacity style={styles.backButton} onPress={onBackPress}>
-          <Ionicons name="arrow-back" size={24} color="#1e293b" />
-        </TouchableOpacity>
         <Text style={styles.headerTitle}>Profil Saya</Text>
-        <View style={{ width: 40 }} />
       </View>
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContainer}>
@@ -152,15 +148,12 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
+    justifyContent: 'center',
     paddingHorizontal: 16,
     paddingVertical: 12,
     borderBottomWidth: 1,
     borderBottomColor: '#e2e8f0',
     backgroundColor: '#fff',
-  },
-  backButton: {
-    padding: 8,
   },
   headerTitle: {
     fontSize: 18,

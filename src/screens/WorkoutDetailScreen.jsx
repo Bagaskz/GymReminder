@@ -12,7 +12,8 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 
-const WorkoutDetailScreen = ({ id, onBackPress, schedules }) => {
+const WorkoutDetailScreen = ({ route, navigation, schedules }) => {
+  const { id } = route.params;
   // Cari data workout berdasarkan ID dari props schedules
   const workout = schedules.find(item => item.id === id);
 
@@ -56,7 +57,7 @@ const WorkoutDetailScreen = ({ id, onBackPress, schedules }) => {
     return (
       <SafeAreaView style={styles.errorContainer}>
         <Text style={styles.errorText}>Jadwal latihan tidak ditemukan.</Text>
-        <TouchableOpacity style={styles.backBtn} onPress={onBackPress}>
+        <TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()}>
           <Text style={styles.backBtnText}>Kembali</Text>
         </TouchableOpacity>
       </SafeAreaView>
@@ -96,8 +97,7 @@ const WorkoutDetailScreen = ({ id, onBackPress, schedules }) => {
         <View style={styles.imageContainer}>
           <Image source={{ uri: workout.image }} style={styles.image} />
           
-          {/* Menggunakan onBackPress callback */}
-          <TouchableOpacity style={styles.overlayBackBtn} onPress={onBackPress}>
+          <TouchableOpacity style={styles.overlayBackBtn} onPress={() => navigation.goBack()}>
             <Ionicons name="chevron-back" size={24} color="#fff" />
           </TouchableOpacity>
 

@@ -14,7 +14,7 @@ import CategoryList from '../components/CategoryList';
 import MainCard from '../components/MainCard';
 import ScheduleItem from '../components/ScheduleItem';
 
-const HomeScreen = ({ onWorkoutPress, schedules, deleteWorkout, categories }) => {
+const HomeScreen = ({ navigation, schedules, deleteWorkout, categories }) => {
   const [selectedCategory, setSelectedCategory] = useState(null);
 
   // Dapatkan hari ini
@@ -51,7 +51,7 @@ const HomeScreen = ({ onWorkoutPress, schedules, deleteWorkout, categories }) =>
 
   return (
     <SafeAreaView style={styles.container}>
-      {/* Header Utama dengan callback onProfilePress */}
+      {/* Header Utama */}
       <Header />
 
       {/* FlatList Utama yang Merender Header & Item List */}
@@ -70,7 +70,7 @@ const HomeScreen = ({ onWorkoutPress, schedules, deleteWorkout, categories }) =>
             <Text style={styles.sectionTitle}>Latihan Hari Ini</Text>
             <MainCard 
               workout={todayWorkout} 
-              onPress={() => todayWorkout && onWorkoutPress(todayWorkout.id)}
+              onPress={() => todayWorkout && navigation.navigate('WorkoutDetail', { id: todayWorkout.id })}
             />
 
             <Text style={styles.sectionTitle}>Kategori Latihan</Text>
@@ -96,7 +96,7 @@ const HomeScreen = ({ onWorkoutPress, schedules, deleteWorkout, categories }) =>
           <ScheduleItem 
             item={item} 
             onDelete={handleHapusJadwal}
-            onPress={() => onWorkoutPress(item.id)}
+            onPress={() => navigation.navigate('WorkoutDetail', { id: item.id })}
           />
         )}
       />

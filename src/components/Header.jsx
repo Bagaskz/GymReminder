@@ -2,7 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
-// Komponen Header premium yang rapi tanpa tombol profil untuk BAB4
+// Komponen Header premium yang rapi tanpa tombol profil
 const Header = () => {
   return (
     <View style={styles.container}>
