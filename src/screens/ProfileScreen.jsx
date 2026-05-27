@@ -120,6 +120,33 @@ const ProfileScreen = ({ navigation, schedules, resetSchedules }) => {
         <View style={styles.settingsGroup}>
           
           <TouchableOpacity 
+            style={styles.settingItem} 
+            onPress={() => {
+              Alert.alert(
+                "Reset Data",
+                "Apakah Anda yakin ingin mereset semua jadwal latihan kembali ke data default di server?",
+                [
+                  { text: "Batal", style: "cancel" },
+                  { 
+                    text: "Reset", 
+                    style: "destructive", 
+                    onPress: async () => {
+                      await resetSchedules();
+                    }
+                  }
+                ]
+              );
+            }}
+            activeOpacity={0.7}
+          >
+            <View style={styles.settingLeft}>
+              <Ionicons name="refresh-circle-outline" size={22} color="#0284c7" />
+              <Text style={styles.settingLabelText}>Reset Data ke Default</Text>
+            </View>
+            <Ionicons name="chevron-forward" size={18} color="#0284c7" />
+          </TouchableOpacity>
+
+          <TouchableOpacity 
             style={[styles.settingItem, styles.resetItem]} 
             onPress={handleLogout}
             activeOpacity={0.7}

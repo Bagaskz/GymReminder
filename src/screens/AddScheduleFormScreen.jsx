@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -8,18 +8,52 @@ import {
   ScrollView,
   KeyboardAvoidingView,
   Platform,
-  Alert
+  Alert,
+  ActivityIndicator
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import { presetImages } from '../data/workoutData';
 
-const AddScheduleFormScreen = ({ navigation }) => {
+const AddScheduleFormScreen = ({ route, navigation, addWorkout, editWorkout, schedules }) => {
   // State untuk isian formulir
   const [title, setTitle] = useState('');
   const [selectedDay, setSelectedDay] = useState('Monday');
   const [selectedCategory, setSelectedCategory] = useState('Strength');
   const [duration, setDuration] = useState('');
   const [notes, setNotes] = useState('');
+  const [imageUrl, setImageUrl] = useState('');
+  const [isSaving, setIsSaving] = useState(false);
+
+  const workoutId = route.params?.workoutId;
+  const isEditMode = !!workoutId;
+
+  // Memuat data awal jika berada dalam Mode Edit
+  useEffect(() => {
+    if (isEditMode && schedules) {
+      const existingWorkout = schedules.find(item => item.id === workoutId);
+      if (existingWorkout) {
+        setTitle(existingWorkout.title);
+        setSelectedDay(existingWorkout.day);
+        setSelectedCategory(existingWorkout.category);
+        setDuration(existingWorkout.duration ? String(existingWorkout.duration) : '');
+        setNotes(existingWorkout.notes || '');
+        setImageUrl(existingWorkout.image || '');
+      }
+    } else {
+      // Inisialisasi awal URL gambar default kategori saat tambah baru
+      setImageUrl(presetImages.Strength);
+    }
+  }, [workoutId, schedules]);
+
+  // Handler ganti kategori otomatis merubah URL gambar jika belum dicustomize
+  const handleCategorySelect = (catName) => {
+    setSelectedCategory(catName);
+    const isPresetOrEmpty = !imageUrl || Object.values(presetImages).includes(imageUrl);
+    if (isPresetOrEmpty) {
+      setImageUrl(presetImages[catName]);
+    }
+  };
 
   // Daftar Hari (Map Singkatan & Nama Lengkap)
   const days = [
@@ -39,23 +73,49 @@ const AddScheduleFormScreen = ({ navigation }) => {
     { name: 'Yoga', icon: 'body-outline' }
   ];
 
-  // Callback Simpan Jadwal (Hanya UI & Navigasi kembali sesuai permintaan)
-  const handleSave = () => {
+  // Callback Simpan Jadwal (Menggunakan REST API POST/PUT)
+  const handleSave = async () => {
     if (!title.trim()) {
       Alert.alert('Form Belum Lengkap', 'Silakan masukkan nama latihan terlebih dahulu.');
       return;
     }
     
-    Alert.alert(
-      'Simpan Jadwal',
-      'Jadwal latihan baru berhasil dibuat! (Simulasi penyimpanan)',
-      [
-        {
-          text: 'OK',
-          onPress: () => navigation.goBack()
-        }
-      ]
-    );
+    setIsSaving(true);
+    try {
+      const workoutData = {
+        title: title.trim(),
+        day: selectedDay,
+        category: selectedCategory,
+        duration: parseInt(duration, 10) || 30, // Default 30 menit jika kosong
+        notes: notes.trim(),
+        image: imageUrl.trim() || presetImages[selectedCategory] || presetImages.Strength,
+        completed: isEditMode ? (schedules.find(item => item.id === workoutId)?.completed ?? false) : false
+      };
+
+      let success = false;
+      if (isEditMode) {
+        success = await editWorkout(workoutId, workoutData);
+      } else {
+        success = await addWorkout(workoutData);
+      }
+      
+      if (success) {
+        Alert.alert(
+          'Sukses',
+          isEditMode ? 'Jadwal latihan berhasil diperbarui!' : 'Jadwal latihan baru berhasil disimpan!',
+          [
+            {
+              text: 'OK',
+              onPress: () => navigation.goBack()
+            }
+          ]
+        );
+      }
+    } catch (error) {
+      Alert.alert('Error', 'Terjadi kesalahan saat menyimpan jadwal.');
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   return (
@@ -65,7 +125,7 @@ const AddScheduleFormScreen = ({ navigation }) => {
         <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
           <Ionicons name="chevron-back" size={24} color="#1e293b" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Tambah Jadwal</Text>
+        <Text style={styles.headerTitle}>{isEditMode ? 'Edit Jadwal' : 'Tambah Jadwal'}</Text>
         <View style={{ width: 40 }} />
       </View>
 
@@ -122,7 +182,7 @@ const AddScheduleFormScreen = ({ navigation }) => {
                 <TouchableOpacity
                   key={cat.name}
                   style={[styles.categoryCard, isSelected && styles.categoryCardSelected]}
-                  onPress={() => setSelectedCategory(cat.name)}
+                  onPress={() => handleCategorySelect(cat.name)}
                   activeOpacity={0.7}
                 >
                   <Ionicons 
@@ -153,6 +213,21 @@ const AddScheduleFormScreen = ({ navigation }) => {
             />
           </View>
 
+          {/* Bagian 4.5: URL Gambar Latihan */}
+          <Text style={styles.inputLabel}>URL Gambar Latihan</Text>
+          <View style={styles.inputContainer}>
+            <Ionicons name="image-outline" size={20} color="#64748b" style={styles.inputIcon} />
+            <TextInput
+              style={styles.textInput}
+              placeholder="Masukkan URL gambar..."
+              placeholderTextColor="#94a3b8"
+              value={imageUrl}
+              onChangeText={setImageUrl}
+              autoCapitalize="none"
+              autoCorrect={false}
+            />
+          </View>
+
           {/* Bagian 5: Catatan Gerakan */}
           <Text style={styles.inputLabel}>Catatan Gerakan / Rencana</Text>
           <View style={[styles.inputContainer, styles.textAreaContainer]}>
@@ -169,12 +244,19 @@ const AddScheduleFormScreen = ({ navigation }) => {
 
           {/* Tombol Simpan Jadwal */}
           <TouchableOpacity 
-            style={styles.saveButton} 
+            style={[styles.saveButton, isSaving && styles.saveButtonDisabled]} 
             onPress={handleSave}
+            disabled={isSaving}
             activeOpacity={0.8}
           >
-            <Ionicons name="checkmark-circle-outline" size={22} color="#fff" style={{ marginRight: 8 }} />
-            <Text style={styles.saveButtonText}>Simpan Jadwal</Text>
+            {isSaving ? (
+              <ActivityIndicator size="small" color="#fff" style={{ marginRight: 8 }} />
+            ) : (
+              <Ionicons name="checkmark-circle-outline" size={22} color="#fff" style={{ marginRight: 8 }} />
+            )}
+            <Text style={styles.saveButtonText}>
+              {isSaving ? 'Menyimpan...' : (isEditMode ? 'Simpan Perubahan' : 'Simpan Jadwal')}
+            </Text>
           </TouchableOpacity>
 
         </ScrollView>
@@ -317,6 +399,10 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.2,
     shadowRadius: 6,
+  },
+  saveButtonDisabled: {
+    backgroundColor: '#a5d6a7',
+    shadowColor: '#a5d6a7',
   },
   saveButtonText: {
     color: '#fff',

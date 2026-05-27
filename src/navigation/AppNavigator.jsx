@@ -15,7 +15,7 @@ const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
 
 // Komponen Navigator Bottom Tab
-const MainTabs = ({ schedules, deleteWorkout, categories, resetSchedules }) => {
+const MainTabs = ({ schedules, isLoading, deleteWorkout, toggleWorkoutCompleted, categories, resetSchedules }) => {
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({
@@ -62,7 +62,9 @@ const MainTabs = ({ schedules, deleteWorkout, categories, resetSchedules }) => {
           <HomeScreen 
             {...props} 
             schedules={schedules} 
+            isLoading={isLoading}
             deleteWorkout={deleteWorkout} 
+            toggleWorkoutCompleted={toggleWorkoutCompleted}
             categories={categories} 
           />
         )}
@@ -91,7 +93,7 @@ const MainTabs = ({ schedules, deleteWorkout, categories, resetSchedules }) => {
   );
 };
 
-const AppNavigator = ({ schedules, deleteWorkout, categories, resetSchedules }) => {
+const AppNavigator = ({ schedules, isLoading, deleteWorkout, addWorkout, editWorkout, toggleWorkoutCompleted, categories, resetSchedules }) => {
   return (
     <NavigationContainer>
       <StatusBar style="dark" translucent backgroundColor="transparent" />
@@ -110,7 +112,9 @@ const AppNavigator = ({ schedules, deleteWorkout, categories, resetSchedules }) 
             <MainTabs 
               {...props} 
               schedules={schedules} 
+              isLoading={isLoading}
               deleteWorkout={deleteWorkout} 
+              toggleWorkoutCompleted={toggleWorkoutCompleted}
               categories={categories} 
               resetSchedules={resetSchedules}
             />
@@ -128,10 +132,17 @@ const AppNavigator = ({ schedules, deleteWorkout, categories, resetSchedules }) 
           )}
         />
 
-        {/* Rute Form Tambah Jadwal: Di luar Tab agar menyembunyikan Tab Bar */}
+        {/* Rute Form Tambah/Edit Jadwal: Di luar Tab agar menyembunyikan Tab Bar */}
         <Stack.Screen 
           name="AddScheduleForm" 
-          component={AddScheduleFormScreen}
+          children={(props) => (
+            <AddScheduleFormScreen 
+              {...props} 
+              addWorkout={addWorkout}
+              editWorkout={editWorkout}
+              schedules={schedules}
+            />
+          )}
         />
       </Stack.Navigator>
     </NavigationContainer>

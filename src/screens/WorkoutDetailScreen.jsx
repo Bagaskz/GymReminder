@@ -151,6 +151,14 @@ const WorkoutDetailScreen = ({ route, navigation, schedules }) => {
             <Ionicons name="chevron-back" size={24} color="#fff" />
           </TouchableOpacity>
 
+          <TouchableOpacity 
+            style={styles.overlayEditBtn} 
+            onPress={() => navigation.navigate('AddScheduleForm', { workoutId: workout.id })}
+            activeOpacity={0.8}
+          >
+            <Ionicons name="create-outline" size={22} color="#fff" />
+          </TouchableOpacity>
+
           <View style={styles.overlayCategoryBadge}>
             <Text style={styles.categoryBadgeText}>{workout.category}</Text>
           </View>
@@ -289,6 +297,17 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 16,
     left: 16,
+    backgroundColor: 'rgba(15, 23, 42, 0.6)',
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  overlayEditBtn: {
+    position: 'absolute',
+    top: 16,
+    right: 16,
     backgroundColor: 'rgba(15, 23, 42, 0.6)',
     width: 44,
     height: 44,
