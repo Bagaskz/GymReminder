@@ -5,7 +5,8 @@ import {
   FlatList, 
   Text, 
   Alert,
-  Animated
+  Animated,
+  TouchableOpacity
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -124,6 +125,15 @@ const HomeScreen = ({ navigation, schedules, deleteWorkout, categories }) => {
           )}
         />
       </Animated.View>
+
+      {/* Tombol Tambah Jadwal Melayang (Floating Action Button) */}
+      <TouchableOpacity 
+        style={styles.fab} 
+        onPress={() => navigation.navigate('AddScheduleForm')}
+        activeOpacity={0.8}
+      >
+        <Ionicons name="add" size={28} color="#fff" />
+      </TouchableOpacity>
     </SafeAreaView>
   );
 };
@@ -175,5 +185,21 @@ const styles = StyleSheet.create({
     marginTop: 8,
     color: '#94a3b8',
     fontSize: 14,
+  },
+  fab: {
+    position: 'absolute',
+    bottom: 24,
+    right: 24,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: '#4CAF50',
+    justifyContent: 'center',
+    alignItems: 'center',
+    elevation: 6,
+    shadowColor: '#4CAF50',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 6,
   }
 });

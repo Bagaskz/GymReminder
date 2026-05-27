@@ -9,6 +9,7 @@ import HomeScreen from '../screens/HomeScreen';
 import StatsScreen from '../screens/StatsScreen';
 import ProfileScreen from '../screens/ProfileScreen';
 import WorkoutDetailScreen from '../screens/WorkoutDetailScreen';
+import AddScheduleFormScreen from '../screens/AddScheduleFormScreen';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -125,6 +126,12 @@ const AppNavigator = ({ schedules, deleteWorkout, categories, resetSchedules }) 
               schedules={schedules} 
             />
           )}
+        />
+
+        {/* Rute Form Tambah Jadwal: Di luar Tab agar menyembunyikan Tab Bar */}
+        <Stack.Screen 
+          name="AddScheduleForm" 
+          component={AddScheduleFormScreen}
         />
       </Stack.Navigator>
     </NavigationContainer>
