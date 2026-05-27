@@ -25,13 +25,12 @@ const App = () => {
   return (
     <SafeAreaProvider>
       <StatusBar style="dark" translucent backgroundColor="transparent" />
-      
+
       {/* Rute 1: Dashboard Utama (Aktif secara default) */}
       <HomeScreen 
         schedules={schedules} 
         deleteWorkout={deleteWorkout} 
         categories={categories} 
-        onProfilePress={() => {}}
         onWorkoutPress={() => {}}
       />
 

@@ -14,7 +14,7 @@ import CategoryList from '../components/CategoryList';
 import MainCard from '../components/MainCard';
 import ScheduleItem from '../components/ScheduleItem';
 
-const HomeScreen = ({ onProfilePress, onWorkoutPress, schedules, deleteWorkout, categories }) => {
+const HomeScreen = ({ onWorkoutPress, schedules, deleteWorkout, categories }) => {
   const [selectedCategory, setSelectedCategory] = useState(null);
 
   // Dapatkan hari ini
@@ -52,7 +52,7 @@ const HomeScreen = ({ onProfilePress, onWorkoutPress, schedules, deleteWorkout, 
   return (
     <SafeAreaView style={styles.container}>
       {/* Header Utama dengan callback onProfilePress */}
-      <Header onProfilePress={onProfilePress} />
+      <Header />
 
       {/* FlatList Utama yang Merender Header & Item List */}
       <FlatList
