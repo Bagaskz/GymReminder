@@ -1,10 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { 
   View, 
   StyleSheet, 
   FlatList, 
   Text, 
-  Alert 
+  Alert,
+  Animated
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -16,6 +17,26 @@ import ScheduleItem from '../components/ScheduleItem';
 
 const HomeScreen = ({ navigation, schedules, deleteWorkout, categories }) => {
   const [selectedCategory, setSelectedCategory] = useState(null);
+
+  // Nilai Animasi untuk efek masuk (Entrance)
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const slideAnim = useRef(new Animated.Value(30)).current; // Geser dari bawah (30px)
+
+  useEffect(() => {
+    // Jalankan animasi masuk secara paralel
+    Animated.parallel([
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 800,
+        useNativeDriver: true,
+      }),
+      Animated.timing(slideAnim, {
+        toValue: 0,
+        duration: 800,
+        useNativeDriver: true,
+      })
+    ]).start();
+  }, []);
 
   // Dapatkan hari ini
   const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
@@ -54,52 +75,55 @@ const HomeScreen = ({ navigation, schedules, deleteWorkout, categories }) => {
       {/* Header Utama */}
       <Header />
 
-      {/* FlatList Utama yang Merender Header & Item List */}
-      <FlatList
-        data={filteredSchedules}
-        keyExtractor={(item) => item.id}
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.listContainer}
-        ListHeaderComponent={
-          <>
-            <View style={styles.greetingContainer}>
-              <Text style={styles.greetingText}>Halo, Calon Atlet! 👋</Text>
-              <Text style={styles.subGreetingText}>Ayo pertahankan konsistensi latihanmu.</Text>
-            </View>
-
-            <Text style={styles.sectionTitle}>Latihan Hari Ini</Text>
-            <MainCard 
-              workout={todayWorkout} 
-              onPress={() => todayWorkout && navigation.navigate('WorkoutDetail', { id: todayWorkout.id })}
-            />
-
-            <Text style={styles.sectionTitle}>Kategori Latihan</Text>
-            <CategoryList 
-              categories={categories} 
-              selectedCategory={selectedCategory}
-              onSelectCategory={setSelectedCategory}
-            />
-
-            <Text style={styles.sectionTitle}>
-              {selectedCategory ? `Jadwal ${selectedCategory}` : 'Semua Jadwal Latihan'}
-            </Text>
-            
-            {filteredSchedules.length === 0 ? (
-              <View style={styles.emptyContainer}>
-                <Ionicons name="barbell-outline" size={48} color="#cbd5e1" />
-                <Text style={styles.emptyText}>Tidak ada jadwal untuk kategori ini.</Text>
+      {/* Kontainer beranimasi pembungkus isi dashboard */}
+      <Animated.View style={{ flex: 1, opacity: fadeAnim, transform: [{ translateY: slideAnim }] }}>
+        {/* FlatList Utama yang Merender Header & Item List */}
+        <FlatList
+          data={filteredSchedules}
+          keyExtractor={(item) => item.id}
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={styles.listContainer}
+          ListHeaderComponent={
+            <>
+              <View style={styles.greetingContainer}>
+                <Text style={styles.greetingText}>Halo, Calon Atlet! 👋</Text>
+                <Text style={styles.subGreetingText}>Ayo pertahankan konsistensi latihanmu.</Text>
               </View>
-            ) : null}
-          </>
-        }
-        renderItem={({ item }) => (
-          <ScheduleItem 
-            item={item} 
-            onDelete={handleHapusJadwal}
-            onPress={() => navigation.navigate('WorkoutDetail', { id: item.id })}
-          />
-        )}
-      />
+
+              <Text style={styles.sectionTitle}>Latihan Hari Ini</Text>
+              <MainCard 
+                workout={todayWorkout} 
+                onPress={() => todayWorkout && navigation.navigate('WorkoutDetail', { id: todayWorkout.id })}
+              />
+
+              <Text style={styles.sectionTitle}>Kategori Latihan</Text>
+              <CategoryList 
+                categories={categories} 
+                selectedCategory={selectedCategory}
+                onSelectCategory={setSelectedCategory}
+              />
+
+              <Text style={styles.sectionTitle}>
+                {selectedCategory ? `Jadwal ${selectedCategory}` : 'Semua Jadwal Latihan'}
+              </Text>
+              
+              {filteredSchedules.length === 0 ? (
+                <View style={styles.emptyContainer}>
+                  <Ionicons name="barbell-outline" size={48} color="#cbd5e1" />
+                  <Text style={styles.emptyText}>Tidak ada jadwal untuk kategori ini.</Text>
+                </View>
+              ) : null}
+            </>
+          }
+          renderItem={({ item }) => (
+            <ScheduleItem 
+              item={item} 
+              onDelete={handleHapusJadwal}
+              onPress={() => navigation.navigate('WorkoutDetail', { id: item.id })}
+            />
+          )}
+        />
+      </Animated.View>
     </SafeAreaView>
   );
 };

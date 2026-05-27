@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -7,7 +7,8 @@ import {
   TouchableOpacity,
   ScrollView,
   Alert,
-  Platform
+  Platform,
+  Animated
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -22,14 +23,54 @@ const WorkoutDetailScreen = ({ route, navigation, schedules }) => {
   const [isRunning, setIsRunning] = useState(false);
   const [isCompleted, setIsCompleted] = useState(false);
 
+  // Nilai animasi skala untuk efek berdenyut (Pulse) angka timer
+  const timerScale = useRef(new Animated.Value(1)).current;
+  // Nilai animasi tombol play/pause (Spring Bounce)
+  const playBtnScale = useRef(new Animated.Value(1)).current;
+
   // Inisialisasi durasi timer berdasarkan data workout
   useEffect(() => {
     if (workout) {
       setTimeLeft(workout.duration * 60); // Konversi menit ke detik
       setIsRunning(false);
       setIsCompleted(false);
+      timerScale.setValue(1);
     }
   }, [workout]);
+
+  // Efek Animasi Pulse berulang saat timer berjalan aktif
+  useEffect(() => {
+    let pulseAnim = null;
+    if (isRunning) {
+      pulseAnim = Animated.loop(
+        Animated.sequence([
+          Animated.timing(timerScale, {
+            toValue: 1.08,
+            duration: 500,
+            useNativeDriver: true,
+          }),
+          Animated.timing(timerScale, {
+            toValue: 1,
+            duration: 500,
+            useNativeDriver: true,
+          }),
+        ])
+      );
+      pulseAnim.start();
+    } else {
+      Animated.timing(timerScale, {
+        toValue: 1,
+        duration: 200,
+        useNativeDriver: true,
+      }).start();
+    }
+
+    return () => {
+      if (pulseAnim) {
+        pulseAnim.stop();
+      }
+    };
+  }, [isRunning]);
 
   // Efek Timer Countdown
   useEffect(() => {
@@ -71,8 +112,17 @@ const WorkoutDetailScreen = ({ route, navigation, schedules }) => {
     return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
 
-  // Fungsi kontrol timer
+  // Fungsi kontrol timer dengan efek animasi spring button
   const toggleTimer = () => {
+    // Jalankan efek pegas memantul
+    playBtnScale.setValue(0.85);
+    Animated.spring(playBtnScale, {
+      toValue: 1,
+      friction: 4,
+      tension: 40,
+      useNativeDriver: true,
+    }).start();
+
     setIsRunning(!isRunning);
   };
 
@@ -130,9 +180,15 @@ const WorkoutDetailScreen = ({ route, navigation, schedules }) => {
           <View style={styles.timerCard}>
             <Text style={styles.timerCardTitle}>Timer Sesi Olahraga</Text>
             
-            <Text style={[styles.timerText, isCompleted && styles.completedTimerText]}>
+            <Animated.Text 
+              style={[
+                styles.timerText, 
+                isCompleted && styles.completedTimerText, 
+                { transform: [{ scale: timerScale }] }
+              ]}
+            >
               {formatTime(timeLeft)}
-            </Text>
+            </Animated.Text>
 
             <View style={styles.adjustRow}>
               <TouchableOpacity 
@@ -157,21 +213,23 @@ const WorkoutDetailScreen = ({ route, navigation, schedules }) => {
                 <Ionicons name="refresh-outline" size={24} color="#64748b" />
               </TouchableOpacity>
 
-              <TouchableOpacity 
-                style={[
-                  styles.controlBtn, 
-                  isRunning ? styles.pauseBtn : styles.playBtn
-                ]} 
-                onPress={toggleTimer}
-                activeOpacity={0.8}
-              >
-                <Ionicons 
-                  name={isRunning ? "pause" : "play"} 
-                  size={28} 
-                  color="#fff" 
-                  style={!isRunning ? { marginLeft: 4 } : null}
-                />
-              </TouchableOpacity>
+              <Animated.View style={{ transform: [{ scale: playBtnScale }] }}>
+                <TouchableOpacity 
+                  style={[
+                    styles.controlBtn, 
+                    isRunning ? styles.pauseBtn : styles.playBtn
+                  ]} 
+                  onPress={toggleTimer}
+                  activeOpacity={0.8}
+                >
+                  <Ionicons 
+                    name={isRunning ? "pause" : "play"} 
+                    size={28} 
+                    color="#fff" 
+                    style={!isRunning ? { marginLeft: 4 } : null}
+                  />
+                </TouchableOpacity>
+              </Animated.View>
 
               <View style={[styles.controlBtn, styles.placeholderBtn]}>
                 <Ionicons name="barbell-outline" size={24} color="#cbd5e1" />

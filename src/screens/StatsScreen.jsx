@@ -1,11 +1,12 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   ScrollView,
   TouchableOpacity,
-  Alert
+  Alert,
+  Animated
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -44,6 +45,24 @@ const StatsScreen = () => {
   const totalCount = challenges.length;
   const challengeProgress = totalCount > 0 ? (completedCount / totalCount) * 100 : 0;
 
+  // Nilai animasi untuk progress bar
+  const animatedProgress = useRef(new Animated.Value(challengeProgress)).current;
+
+  // Efek untuk menganimasikan progress bar secara halus saat persentase berubah
+  useEffect(() => {
+    Animated.timing(animatedProgress, {
+      toValue: challengeProgress,
+      duration: 350,
+      useNativeDriver: false, // Perubahan dimensi lebar (width) tidak mendukung native driver
+    }).start();
+  }, [challengeProgress]);
+
+  // Interpolasi nilai animasi ke bentuk string persentase
+  const barWidth = animatedProgress.interpolate({
+    inputRange: [0, 100],
+    outputRange: ['0%', '100%'],
+  });
+
   return (
     <SafeAreaView style={styles.container}>
       {/* Header Halaman */}
@@ -67,7 +86,7 @@ const StatsScreen = () => {
               <Text style={styles.progressLabel}>Target harian selesai</Text>
             </View>
             <View style={styles.progressBarBg}>
-              <View style={[styles.progressBarFill, { width: `${challengeProgress}%` }]} />
+              <Animated.View style={[styles.progressBarFill, { width: barWidth }]} />
             </View>
           </View>
 
