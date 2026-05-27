@@ -26,12 +26,6 @@ const App = () => {
     <SafeAreaProvider>
       <StatusBar style="dark" translucent backgroundColor="transparent" />
       
-      {/* =================================================================== */}
-      {/* PREVIEW SCREEN (BAB4):                                              */}
-      {/* Aktifkan salah satu screen di bawah dengan menghapus komentar (uncomment) */}
-      {/* dan pastikan screen lainnya dikomentari (comment out)             */}
-      {/* =================================================================== */}
-
       {/* Rute 1: Dashboard Utama (Aktif secara default) */}
       <HomeScreen 
         schedules={schedules} 
