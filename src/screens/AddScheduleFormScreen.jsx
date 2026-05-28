@@ -9,11 +9,14 @@ import {
   KeyboardAvoidingView,
   Platform,
   Alert,
-  ActivityIndicator
+  ActivityIndicator,
+  Image
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import * as ImagePicker from 'expo-image-picker';
 import { presetImages } from '../data/workoutData';
+import { uploadImage } from '../services/api';
 
 const AddScheduleFormScreen = ({ route, navigation, addWorkout, editWorkout, schedules }) => {
   // State untuk isian formulir
@@ -23,6 +26,7 @@ const AddScheduleFormScreen = ({ route, navigation, addWorkout, editWorkout, sch
   const [duration, setDuration] = useState('');
   const [notes, setNotes] = useState('');
   const [imageUrl, setImageUrl] = useState('');
+  const [localImageUri, setLocalImageUri] = useState('');
   const [isSaving, setIsSaving] = useState(false);
 
   const workoutId = route.params?.workoutId;
@@ -73,7 +77,27 @@ const AddScheduleFormScreen = ({ route, navigation, addWorkout, editWorkout, sch
     { name: 'Yoga', icon: 'body-outline' }
   ];
 
-  // Callback Simpan Jadwal (Menggunakan REST API POST/PUT)
+  // Fungsi memilih gambar dari galeri HP
+  const pickImage = async () => {
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== 'granted') {
+      Alert.alert('Izin Ditolak', 'Aplikasi memerlukan izin akses galeri untuk mengunggah gambar.');
+      return;
+    }
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ['images'],
+      allowsEditing: true,
+      aspect: [4, 3],
+      quality: 0.8,
+    });
+
+    if (!result.canceled && result.assets && result.assets.length > 0) {
+      setLocalImageUri(result.assets[0].uri);
+    }
+  };
+
+  // Callback Simpan Jadwal (Menggunakan REST API POST/PUT & Upload Supabase Storage)
   const handleSave = async () => {
     if (!title.trim()) {
       Alert.alert('Form Belum Lengkap', 'Silakan masukkan nama latihan terlebih dahulu.');
@@ -82,13 +106,29 @@ const AddScheduleFormScreen = ({ route, navigation, addWorkout, editWorkout, sch
     
     setIsSaving(true);
     try {
+      let finalImageUrl = imageUrl.trim();
+
+      // Jika ada gambar galeri yang dipilih, unggah terlebih dahulu
+      if (localImageUri) {
+        try {
+          finalImageUrl = await uploadImage(localImageUri);
+        } catch (uploadError) {
+          Alert.alert(
+            'Gagal Mengunggah',
+            'Gagal menyimpan gambar di server. Menggunakan gambar default kategori.',
+            [{ text: 'OK' }]
+          );
+          finalImageUrl = presetImages[selectedCategory] || presetImages.Strength;
+        }
+      }
+
       const workoutData = {
         title: title.trim(),
         day: selectedDay,
         category: selectedCategory,
         duration: parseInt(duration, 10) || 30, // Default 30 menit jika kosong
         notes: notes.trim(),
-        image: imageUrl.trim() || presetImages[selectedCategory] || presetImages.Strength,
+        image: finalImageUrl || presetImages[selectedCategory] || presetImages.Strength,
         completed: isEditMode ? (schedules.find(item => item.id === workoutId)?.completed ?? false) : false
       };
 
@@ -213,16 +253,43 @@ const AddScheduleFormScreen = ({ route, navigation, addWorkout, editWorkout, sch
             />
           </View>
 
-          {/* Bagian 4.5: URL Gambar Latihan */}
-          <Text style={styles.inputLabel}>URL Gambar Latihan</Text>
+          {/* Bagian 4.5: Gambar Latihan (Preview & Upload) */}
+          <Text style={styles.inputLabel}>Gambar Latihan</Text>
+          <View style={styles.imageSelectorContainer}>
+            <Image 
+              source={{ uri: localImageUri || imageUrl || presetImages[selectedCategory] || presetImages.Strength }} 
+              style={styles.imagePreview} 
+            />
+            <View style={styles.imageSelectorButtons}>
+              <TouchableOpacity style={styles.galleryButton} onPress={pickImage} activeOpacity={0.7}>
+                <Ionicons name="images-outline" size={18} color="#fff" style={{ marginRight: 6 }} />
+                <Text style={styles.galleryButtonText}>Pilih dari Galeri</Text>
+              </TouchableOpacity>
+              {localImageUri ? (
+                <TouchableOpacity 
+                  style={styles.clearImageButton} 
+                  onPress={() => setLocalImageUri('')} 
+                  activeOpacity={0.7}
+                >
+                  <Text style={styles.clearImageButtonText}>Gunakan Gambar Kategori</Text>
+                </TouchableOpacity>
+              ) : null}
+            </View>
+          </View>
+
+          <Text style={styles.inputLabel}>Atau Gunakan URL Gambar Manual</Text>
           <View style={styles.inputContainer}>
-            <Ionicons name="image-outline" size={20} color="#64748b" style={styles.inputIcon} />
+            <Ionicons name="link-outline" size={20} color="#64748b" style={styles.inputIcon} />
             <TextInput
               style={styles.textInput}
               placeholder="Masukkan URL gambar..."
               placeholderTextColor="#94a3b8"
-              value={imageUrl}
-              onChangeText={setImageUrl}
+              value={localImageUri ? 'Gambar dari galeri dipilih' : imageUrl}
+              onChangeText={(text) => {
+                setImageUrl(text);
+                setLocalImageUri(''); // Kosongkan jika user ketik URL manual
+              }}
+              editable={!localImageUri}
               autoCapitalize="none"
               autoCorrect={false}
             />
@@ -408,5 +475,55 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 16,
     fontWeight: 'bold',
+  },
+  imageSelectorContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#fff',
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+    padding: 12,
+  },
+  imagePreview: {
+    width: 80,
+    height: 80,
+    borderRadius: 12,
+    resizeMode: 'cover',
+    backgroundColor: '#f1f5f9',
+  },
+  imageSelectorButtons: {
+    marginLeft: 16,
+    flex: 1,
+    justifyContent: 'center',
+  },
+  galleryButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#4CAF50',
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    borderRadius: 10,
+    marginBottom: 8,
+  },
+  galleryButtonText: {
+    color: '#fff',
+    fontSize: 13,
+    fontWeight: '600',
+  },
+  clearImageButton: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 6,
+    borderWidth: 1,
+    borderColor: '#cbd5e1',
+    borderRadius: 10,
+    backgroundColor: '#f8fafc',
+  },
+  clearImageButtonText: {
+    color: '#64748b',
+    fontSize: 12,
+    fontWeight: '600',
   }
 });

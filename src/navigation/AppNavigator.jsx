@@ -10,6 +10,9 @@ import StatsScreen from '../screens/StatsScreen';
 import ProfileScreen from '../screens/ProfileScreen';
 import WorkoutDetailScreen from '../screens/WorkoutDetailScreen';
 import AddScheduleFormScreen from '../screens/AddScheduleFormScreen';
+import SplashScreen from '../screens/SplashScreen';
+import LoginScreen from '../screens/LoginScreen';
+import RegisterScreen from '../screens/RegisterScreen';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -93,58 +96,80 @@ const MainTabs = ({ schedules, isLoading, deleteWorkout, toggleWorkoutCompleted,
   );
 };
 
-const AppNavigator = ({ schedules, isLoading, deleteWorkout, addWorkout, editWorkout, toggleWorkoutCompleted, categories, resetSchedules }) => {
+const AppNavigator = ({ schedules, isLoading, session, authLoading, deleteWorkout, addWorkout, editWorkout, toggleWorkoutCompleted, categories, resetSchedules }) => {
+  if (authLoading) {
+    return <SplashScreen />;
+  }
+
   return (
     <NavigationContainer>
-      <StatusBar style="dark" translucent backgroundColor="transparent" />
-      <Stack.Navigator 
-        initialRouteName="MainTabs"
-        screenOptions={{
-          headerShown: false,
-          cardStyle: { backgroundColor: '#f8fafc' },
-          gestureEnabled: true,
-        }}
-      >
-        {/* MainTabs yang membungkus Bottom Tab Navigator */}
-        <Stack.Screen 
-          name="MainTabs" 
-          children={(props) => (
-            <MainTabs 
-              {...props} 
-              schedules={schedules} 
-              isLoading={isLoading}
-              deleteWorkout={deleteWorkout} 
-              toggleWorkoutCompleted={toggleWorkoutCompleted}
-              categories={categories} 
-              resetSchedules={resetSchedules}
+      {session === null ? (
+        <>
+          <StatusBar style="light" translucent backgroundColor="transparent" />
+          <Stack.Navigator
+            screenOptions={{
+              headerShown: false,
+              cardStyle: { backgroundColor: '#0f172a' },
+              gestureEnabled: true,
+            }}
+          >
+            <Stack.Screen name="Login" component={LoginScreen} />
+            <Stack.Screen name="Register" component={RegisterScreen} />
+          </Stack.Navigator>
+        </>
+      ) : (
+        <>
+          <StatusBar style="dark" translucent backgroundColor="transparent" />
+          <Stack.Navigator 
+            initialRouteName="MainTabs"
+            screenOptions={{
+              headerShown: false,
+              cardStyle: { backgroundColor: '#f8fafc' },
+              gestureEnabled: true,
+            }}
+          >
+            {/* MainTabs yang membungkus Bottom Tab Navigator */}
+            <Stack.Screen 
+              name="MainTabs" 
+              children={(props) => (
+                <MainTabs 
+                  {...props} 
+                  schedules={schedules} 
+                  isLoading={isLoading}
+                  deleteWorkout={deleteWorkout} 
+                  toggleWorkoutCompleted={toggleWorkoutCompleted}
+                  categories={categories} 
+                  resetSchedules={resetSchedules}
+                />
+              )}
             />
-          )}
-        />
 
-        {/* Rute Detail: Di luar Tab agar menyembunyikan Tab Bar */}
-        <Stack.Screen 
-          name="WorkoutDetail" 
-          children={(props) => (
-            <WorkoutDetailScreen 
-              {...props} 
-              schedules={schedules} 
+            {/* Rute Detail: Di luar Tab agar menyembunyikan Tab Bar */}
+            <Stack.Screen 
+              name="WorkoutDetail" 
+              children={(props) => (
+                <WorkoutDetailScreen 
+                  {...props} 
+                  schedules={schedules} 
+                />
+              )}
             />
-          )}
-        />
 
-        {/* Rute Form Tambah/Edit Jadwal: Di luar Tab agar menyembunyikan Tab Bar */}
-        <Stack.Screen 
-          name="AddScheduleForm" 
-          children={(props) => (
-            <AddScheduleFormScreen 
-              {...props} 
-              addWorkout={addWorkout}
-              editWorkout={editWorkout}
-              schedules={schedules}
+            {/* Rute Form Tambah/Edit Jadwal: Di luar Tab agar menyembunyikan Tab Bar */}
+            <Stack.Screen 
+              name="AddScheduleForm" 
+              children={(props) => (
+                <AddScheduleFormScreen 
+                  {...props} 
+                  addWorkout={addWorkout}
+                  editWorkout={editWorkout}
+                  schedules={schedules}
+                />
+              )}
             />
-          )}
-        />
-      </Stack.Navigator>
+          </Stack.Navigator>
+        </>
+      )}
     </NavigationContainer>
   );
 };

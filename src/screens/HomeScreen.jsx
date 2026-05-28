@@ -25,20 +25,26 @@ const HomeScreen = ({ navigation, schedules, isLoading, deleteWorkout, toggleWor
   const slideAnim = useRef(new Animated.Value(30)).current; // Geser dari bawah (30px)
 
   useEffect(() => {
-    // Jalankan animasi masuk secara paralel
-    Animated.parallel([
-      Animated.timing(fadeAnim, {
-        toValue: 1,
-        duration: 800,
-        useNativeDriver: true,
-      }),
-      Animated.timing(slideAnim, {
-        toValue: 0,
-        duration: 800,
-        useNativeDriver: true,
-      })
-    ]).start();
-  }, []);
+    if (!isLoading) {
+      // Reset nilai ke awal untuk memastikan animasi berjalan bersih
+      fadeAnim.setValue(0);
+      slideAnim.setValue(30);
+
+      // Jalankan animasi masuk secara paralel
+      Animated.parallel([
+        Animated.timing(fadeAnim, {
+          toValue: 1,
+          duration: 800,
+          useNativeDriver: true,
+        }),
+        Animated.timing(slideAnim, {
+          toValue: 0,
+          duration: 800,
+          useNativeDriver: true,
+        })
+      ]).start();
+    }
+  }, [isLoading]);
 
   // Dapatkan hari ini
   const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];

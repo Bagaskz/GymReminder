@@ -6,18 +6,60 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import AppNavigator from './src/navigation/AppNavigator';
 import { initialSchedules, categories } from './src/data/workoutData';
 import { getSchedules, createSchedule, updateSchedule, deleteSchedule } from './src/services/api';
+import { supabase } from './src/services/supabase';
 
 const App = () => {
   const [schedules, setSchedules] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
+  const [session, setSession] = useState(null);
+  const [authLoading, setAuthLoading] = useState(true);
 
-  // Ambil data jadwal dari server API saat pertama kali dimuat
+  // Cek sesi autentikasi saat aplikasi diinisialisasi (dengan batas waktu minimal display SplashScreen)
+  useEffect(() => {
+    let timerFinished = false;
+    let sessionResolved = false;
+    let currentSession = null;
+
+    // Minimum display time untuk SplashScreen (1.5 detik) agar transisi terlihat mulus
+    const splashTimer = setTimeout(() => {
+      timerFinished = true;
+      if (sessionResolved) {
+        setSession(currentSession);
+        setAuthLoading(false);
+      }
+    }, 1500);
+
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      currentSession = session;
+      sessionResolved = true;
+      if (timerFinished) {
+        setSession(session);
+        setAuthLoading(false);
+      }
+    });
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      currentSession = session;
+      // Perbarui sesi tetapi pertahankan loading jika timer belum habis
+      if (timerFinished) {
+        setSession(session);
+        setAuthLoading(false);
+      }
+    });
+
+    return () => {
+      clearTimeout(splashTimer);
+      subscription.unsubscribe();
+    };
+  }, []);
+
+  // Ambil data jadwal dari server API saat user terautentikasi
   const fetchSchedules = async () => {
     setIsLoading(true);
     try {
       let data = await getSchedules();
       
-      // Seeding: jika MockAPI baru & kosong, isi otomatis dengan initialSchedules untuk demo awal
+      // Seeding: jika database Supabase baru & kosong untuk user aktif, isi otomatis dengan initialSchedules
       if (data.length === 0) {
         for (const item of initialSchedules) {
           await createSchedule({
@@ -35,15 +77,20 @@ const App = () => {
       
       setSchedules(data);
     } catch (error) {
-      Alert.alert('Koneksi Error', 'Gagal memuat jadwal latihan dari server API.');
+      Alert.alert('Koneksi Error', 'Gagal memuat jadwal latihan dari database Supabase.');
     } finally {
       setIsLoading(false);
     }
   };
 
+  // Muat jadwal jika user login, atau kosongkan state jika user logout
   useEffect(() => {
-    fetchSchedules();
-  }, []);
+    if (session) {
+      fetchSchedules();
+    } else {
+      setSchedules([]);
+    }
+  }, [session]);
 
   // POST: Fungsi menambah jadwal baru
   const addWorkout = async (newWorkout) => {
@@ -137,6 +184,8 @@ const App = () => {
       <AppNavigator 
         schedules={schedules} 
         isLoading={isLoading}
+        session={session}
+        authLoading={authLoading}
         deleteWorkout={deleteWorkout} 
         addWorkout={addWorkout}
         editWorkout={editWorkout}

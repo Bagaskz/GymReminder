@@ -10,6 +10,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import { supabase } from '../services/supabase';
 
 const ProfileScreen = ({ navigation, schedules, resetSchedules }) => {
   const totalWorkouts = schedules.length;
@@ -24,8 +25,15 @@ const ProfileScreen = ({ navigation, schedules, resetSchedules }) => {
         { 
           text: "Keluar", 
           style: "destructive", 
-          onPress: () => {
-            Alert.alert("Sukses", "Anda telah keluar dari akun!");
+          onPress: async () => {
+            try {
+              const { error } = await supabase.auth.signOut();
+              if (error) {
+                throw error;
+              }
+            } catch (error) {
+              Alert.alert("Error", "Gagal keluar dari akun.");
+            }
           }
         }
       ]
